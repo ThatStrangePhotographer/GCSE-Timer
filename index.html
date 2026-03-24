@@ -73,49 +73,22 @@
         overflow: hidden;
     }
 
-    <style>
-    .digit {
-        padding: 20px 35px;
-        border-radius: 25px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        min-width: 110px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
+    /* smooth change animation */
     .digit span {
-        position: absolute;
-        font-size: 3rem;
-        font-weight: 600;
-        opacity: 1;
-        transform: translateY(0);
-        transition: transform 0.45s ease, opacity 0.45s ease;
+        display: inline-block;
+        transition: transform 0.35s ease, opacity 0.35s ease;
     }
 
-    .digit span.out {
+    .digit span.animate-out {
         opacity: 0;
-        transform: translateY(40px);
+        transform: translateY(20px);
     }
 
-    .digit span.in {
-        opacity: 0;
-        transform: translateY(-40px);
-    }
-
-    .digit span.in-active {
+    .digit span.animate-in {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0px);
     }
 </style>
-``
 </head>
 <body>
 
