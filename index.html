@@ -9,243 +9,136 @@
     body {
         margin: 0;
         height: 100vh;
+        background: radial-gradient(circle at top, #1a1a1d, #0c0c0e);
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(180deg, #1e1f23, #0e0e11);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         overflow: hidden;
+        font-family: "Segoe UI", sans-serif;
         color: white;
     }
 
-    /* background glow blobs */
+    /* Blurred background blobs */
     .blob {
         position: absolute;
         width: 450px;
         height: 450px;
-        background: #6a77ff40;
-        filter: blur(140px);
         border-radius: 50%;
-        animation: move 12s ease-in-out infinite alternate;
+        background: #6a5af940;
+        filter: blur(140px);
+        animation: float 12s ease-in-out infinite alternate;
     }
-    .blob:nth-child(1) { top: -80px; left: -80px; }
-    .blob:nth-child(2) { bottom: -100px; right: -70px; animation-duration: 16s; }
+    .blob:nth-child(1) { top: -120px; left: -100px; }
+    .blob:nth-child(2) { bottom: -110px; right: -80px; animation-duration: 18s; }
 
-    @keyframes move {
+    @keyframes float {
         from { transform: translateY(0); }
         to   { transform: translateY(40px); }
     }
 
-    /* glass card */
-    .glass {
-        position: relative;
-        padding: 30px 40px;
-        background: rgba(255, 255, 255, 0.14);
-        backdrop-filter: blur(18px);
-        border-radius: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 25px 55px rgba(0, 0, 0, 0.4);
-        text-align: center;
-        width: 90%;
-        max-width: 480px;
-    }
-
-    h1 {
-        margin: 0 0 25px;
-        font-size: 1.4rem;
-        opacity: 0.85;
-        font-weight: 600;
-    }
-
-    /* GRID LAYOUT --- numbers flip, labels stay normal */
-    .count-grid {
-        display: grid;
-        grid-template-columns: repeat(8, auto);
-        gap: 6px;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    /* digit flip block */
-    .digit-box {
-        position: relative;
-        width: 38px;
-        height: 48px;
-        perspective: 900px;
+    /* Floating glass numbers */
+    .count {
         display: flex;
-        justify-content: center;
+        gap: 30px;
+        font-size: 4rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
     }
 
-    /* static label (d h m s) */
-    .label {
-        font-size: 1.2rem;
-        opacity: 0.75;
-        width: 20px;
+    .group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         text-align: center;
     }
 
-    /* flip halves */
+    .label {
+        margin-top: 10px;
+        font-size: 1rem;
+        opacity: 0.65;
+        letter-spacing: 1px;
+    }
+
     .digit {
-        font-size: 2rem;
-        font-weight: 700;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0; left: 0;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        background: rgba(255,255,255,0.1);
-        border-radius: 6px;
-        backface-visibility:hidden;
-    }
-
-    /* flip animation */
-    .flip {
-        animation: flipDown 0.45s ease;
-        transform-origin: top;
-    }
-
-    @keyframes flipDown {
-        0%   { transform: rotateX(0deg); }
-        100% { transform: rotateX(-90deg); opacity:0; }
-    }
-
-    /* spin-in on load */
-    .spin {
-        animation: spinIn 0.7s ease both;
-    }
-
-    @keyframes spinIn {
-        from { transform: rotateY(90deg); opacity: 0; }
-        to   { transform: rotateY(0); opacity: 1; }
-    }
-
-    /* progress bar */
-    .progress-container {
-        width: 100%;
-        background: rgba(255,255,255,0.2);
-        height: 10px;
-        border-radius: 50px;
+        padding: 20px 35px;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        min-width: 110px;
+        text-align: center;
+        position: relative;
         overflow: hidden;
     }
 
-    .progress-bar {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #5c88ff, #9baeff);
-        border-radius: 50px;
-        transition: width 0.6s ease;
+    /* smooth change animation */
+    .digit span {
+        display: inline-block;
+        transition: transform 0.35s ease, opacity 0.35s ease;
+    }
+
+    .digit span.animate-out {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    .digit span.animate-in {
+        opacity: 1;
+        transform: translateY(0px);
     }
 </style>
-
 </head>
 <body>
 
 <div class="blob"></div>
 <div class="blob"></div>
 
-<div class="glass">
-    <h1>GCSE Countdown</h1>
-
-    <div class="count-grid" id="countGrid"></div>
-
-    <div class="progress-container">
-        <div id="progress" class="progress-bar"></div>
-    </div>
+<div class="count">
+    <div class="group"><div class="digit" id="days"></div><div class="label">DAYS</div></div>
+    <div class="group"><div class="digit" id="hours"></div><div class="label">HOURS</div></div>
+    <div class="group"><div class="digit" id="mins"></div><div class="label">MINS</div></div>
+    <div class="group"><div class="digit" id="secs"></div><div class="label">SECS</div></div>
 </div>
 
 <script>
-const examDate = new Date("2026-05-08T09:00:00");
-const startDate = new Date();
+    const examDate = new Date("2026-05-08T09:00:00");
 
-let lastDigits = "";
+    function animateDigit(element, newValue) {
+        const oldSpan = element.querySelector("span");
+        const newSpan = document.createElement("span");
+        newSpan.textContent = newValue;
+        newSpan.classList.add("animate-in");
 
-function createDigitBox(digit, spin=false) {
-    return `
-        <div class="digit-box">
-            <div class="digit ${spin ? "spin" : ""}">${digit}</div>
-        </div>
-    `;
-}
+        if (oldSpan) {
+            oldSpan.classList.add("animate-out");
 
-function renderDigits(str, spinAll=false) {
-    const grid = document.getElementById("countGrid");
-    grid.innerHTML = "";
-
-    const parts = str.split("");
-
-    for (let char of parts) {
-        if (!isNaN(char)) {
-            grid.innerHTML += createDigitBox(char, spinAll);
-        } else {
-            grid.innerHTML += `<div class="label">${char}</div>`;
+            setTimeout(() => oldSpan.remove(), 300);
         }
-    }
-}
 
-function flipDigits(oldStr, newStr) {
-    const grid = document.getElementById("countGrid");
-    grid.innerHTML = "";
-
-    for (let i = 0; i < newStr.length; i++) {
-        const oldChar = oldStr[i];
-        const newChar = newStr[i];
-
-        if (!isNaN(newChar)) {
-            if (oldChar !== newChar) {
-                grid.innerHTML += `
-                    <div class="digit-box">
-                        <div class="digit flip">${oldChar}</div>
-                        <div class="digit" style="transform: rotateX(90deg)">${newChar}</div>
-                    </div>
-                `;
-            } else {
-                grid.innerHTML += createDigitBox(newChar);
-            }
-        } else {
-            grid.innerHTML += `<div class="label">${newChar}</div>`;
-        }
-    }
-}
-
-function updateCountdown() {
-    const now = new Date();
-    const diff = examDate - now;
-
-    if (diff <= 0) {
-        document.getElementById("countGrid").innerHTML = "<h2>It's Exam Day!</h2>";
-        return;
+        element.appendChild(newSpan);
     }
 
-    const days = Math.floor(diff / 86400000);
-    const hours = Math.floor((diff / 3600000) % 24);
-    const mins = Math.floor((diff / 60000) % 60);
-    const secs = Math.floor((diff / 1000) % 60);
+    function update() {
+        const now = new Date();
+        const diff = examDate - now;
 
-    const str =
-        String(days).padStart(2, "0") + "d" +
-        String(hours).padStart(2, "0") + "h" +
-        String(mins).padStart(2, "0") + "m" +
-        String(secs).padStart(2, "0") + "s";
+        if (diff <= 0) return;
 
-    if (lastDigits === "") {
-        renderDigits(str, true); // spin-in on first load
-    } else {
-        flipDigits(lastDigits, str);
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
+        animateDigit(document.getElementById("days"), d);
+        animateDigit(document.getElementById("hours"), h);
+        animateDigit(document.getElementById("mins"), m);
+        animateDigit(document.getElementById("secs"), s);
     }
 
-    lastDigits = str;
-
-    // update progress %
-    const total = examDate - startDate;
-    const progress = ((total - diff) / total) * 100;
-    document.getElementById("progress").style.width = progress + "%";
-}
-
-updateCountdown();
-setInterval(updateCountdown, 1000);
+    update();
+    setInterval(update, 1000);
 </script>
 
 </body>
