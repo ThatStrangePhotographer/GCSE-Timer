@@ -123,7 +123,18 @@
 <script>
 const examDate = new Date("2026-05-08T09:00:00");
 
-function animateDigit(container, newValue) {
+const lastValues = {
+    days: null,
+    hours: null,
+    mins: null,
+    secs: null
+};
+
+function animateDigit(container, newValue, key) {
+    // ✅ Only animate if value changed
+    if (lastValues[key] === newValue) return;
+    lastValues[key] = newValue;
+
     const oldSpan = container.querySelector("span");
 
     const newSpan = document.createElement("span");
@@ -154,16 +165,19 @@ function update() {
     const m = Math.floor((diff / (1000 * 60)) % 60);
     const s = Math.floor((diff / 1000) % 60);
 
-    animateDigit(document.getElementById("days"), d);
-    animateDigit(document.getElementById("hours"), h);
-    animateDigit(document.getElementById("mins"), m);
-    animateDigit(document.getElementById("secs"), s);
+    animateDigit(document.getElementById("days"), d, "days");
+    animateDigit(document.getElementById("hours"), h, "hours");
+    animateDigit(document.getElementById("mins"), m, "mins");
+    animateDigit(document.getElementById("secs"), s, "secs");
 }
 
-update();
-setInterval(update, 1000);
+function init() {
+    update(); // create initial numbers
+    setInterval(update, 1000);
+}
+
+init();
 </script>
 
 </body>
 </html>
-``
