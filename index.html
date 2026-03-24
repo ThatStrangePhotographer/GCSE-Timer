@@ -18,75 +18,81 @@
         color: white;
     }
 
-    /* Background animated blobs */
+    /* Background blobs */
     .blob {
         position: absolute;
         width: 550px;
         height: 550px;
         border-radius: 50%;
-        background: #6a5af940;
-        filter: blur(150px);
+        background: #6a5af93a;
+        filter: blur(160px);
         animation: float 16s ease-in-out infinite alternate;
     }
     .blob:nth-child(1) { top: -150px; left: -120px; }
-    .blob:nth-child(2) { bottom: -130px; right: -90px; animation-duration: 22s; }
+    .blob:nth-child(2) { bottom: -150px; right: -120px; animation-duration: 22s; }
 
     @keyframes float {
         from { transform: translateY(0); }
-        to   { transform: translateY(50px); }
+        to   { transform: translateY(40px); }
     }
 
-    /* Countdown free-floating container */
+    /* Countdown layout */
     .count {
         display: flex;
-        gap: 60px;
-        font-size: 7rem;     /* ✅ Big numbers */
-        font-weight: 700;
-        z-index: 2;
+        gap: 80px;
+        z-index: 5;
     }
 
     .group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
         position: relative;
-        height: 180px;     /* ✅ Enough space for vertical animation */
+        width: 200px;   /* plenty of space for large digits */
+        height: 220px;  /* tall enough for vertical animation */
         overflow: hidden;
+        text-align: center;
     }
 
+    /* LABELS */
     .label {
-        margin-top: 20px;
-        font-size: 1.2rem;
-        opacity: 0.65;
+        margin-top: 10px;
+        font-size: 1.3rem;
+        opacity: 0.7;
         letter-spacing: 2px;
     }
 
-    /* Floating number spans */
+    /* DIGITS */
+    .digit {
+        position: relative;
+        width: 100%;
+        height: 180px;
+    }
+
+    /* Each digit span */
     .digit span {
         position: absolute;
-        top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translateX(-50%);
+        font-size: 7rem;    /* ✅ Large */
+        font-weight: 700;
         opacity: 1;
         transition: transform 0.5s ease, opacity 0.5s ease;
     }
 
-    /* OUTGOING number */
+    /* Outgoing digit */
     .out {
         opacity: 0;
-        transform: translate(-50%, 70%); /* slide downward */
+        transform: translate(-50%, 120%);
     }
 
-    /* INCOMING number (starts above) */
+    /* Incoming digit starts above */
     .in {
         opacity: 0;
-        transform: translate(-50%, -170%);
+        transform: translate(-50%, -120%);
     }
 
-    /* INCOMING ACTIVE (final position) */
+    /* Incoming digit final resting state */
     .in-active {
         opacity: 1;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, 0%);
     }
 </style>
 </head>
@@ -100,17 +106,14 @@
         <div class="digit" id="days"></div>
         <div class="label">DAYS</div>
     </div>
-
     <div class="group">
         <div class="digit" id="hours"></div>
         <div class="label">HOURS</div>
     </div>
-
     <div class="group">
         <div class="digit" id="mins"></div>
         <div class="label">MINS</div>
     </div>
-
     <div class="group">
         <div class="digit" id="secs"></div>
         <div class="label">SECS</div>
@@ -118,45 +121,47 @@
 </div>
 
 <script>
-    const examDate = new Date("2026-05-08T09:00:00");
+const examDate = new Date("2026-05-08T09:00:00");
 
-    function animateDigit(container, newValue) {
-        const oldSpan = container.querySelector("span");
+function animateDigit(container, newValue) {
+    const oldSpan = container.querySelector("span");
 
-        const newSpan = document.createElement("span");
-        newSpan.textContent = newValue;
-        newSpan.classList.add("in");
-        container.appendChild(newSpan);
+    const newSpan = document.createElement("span");
+    newSpan.textContent = newValue;
+    newSpan.classList.add("in");
+    container.appendChild(newSpan);
 
-        requestAnimationFrame(() => {
-            if (oldSpan) oldSpan.classList.add("out");
+    requestAnimationFrame(() => {
+        if (oldSpan) oldSpan.classList.add("out");
 
-            newSpan.classList.remove("in");
-            newSpan.classList.add("in-active");
-        });
+        newSpan.classList.remove("in");
+        newSpan.classList.add("in-active");
+    });
 
-        setTimeout(() => { if (oldSpan) oldSpan.remove(); }, 500);
-    }
+    setTimeout(() => {
+        if (oldSpan) oldSpan.remove();
+    }, 500);
+}
 
-    function update() {
-        const now = new Date();
-        const diff = examDate - now;
+function update() {
+    const now = new Date();
+    const diff = examDate - now;
 
-        if (diff <= 0) return;
+    if (diff <= 0) return;
 
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diff / (1000 * 60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
 
-        animateDigit(document.getElementById("days"), d);
-        animateDigit(document.getElementById("hours"), h);
-        animateDigit(document.getElementById("mins"), m);
-        animateDigit(document.getElementById("secs"), s);
-    }
+    animateDigit(document.getElementById("days"), d);
+    animateDigit(document.getElementById("hours"), h);
+    animateDigit(document.getElementById("mins"), m);
+    animateDigit(document.getElementById("secs"), s);
+}
 
-    update();
-    setInterval(update, 1000);
+update();
+setInterval(update, 1000);
 </script>
 
 </body>
