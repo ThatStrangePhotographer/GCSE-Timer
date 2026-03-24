@@ -47,11 +47,9 @@
         position: relative;
         width: 200px;
         height: 220px;
-        overflow: hidden;
         text-align: center;
     }
 
-    /* LABELS */
     .label {
         margin-top: 10px;
         font-size: 1.3rem;
@@ -59,36 +57,18 @@
         letter-spacing: 2px;
     }
 
-    /* DIGITS */
     .digit {
         position: relative;
         width: 100%;
         height: 180px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .digit span {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
         font-size: 7rem;
         font-weight: 700;
-        opacity: 1;
-        transition: transform 0.5s ease, opacity 0.5s ease;
-    }
-
-    .out {
-        opacity: 0;
-        transform: translate(-50%, 120%);
-    }
-
-    .in {
-        opacity: 0;
-        transform: translate(-50%, -120%);
-    }
-
-    .in-active {
-        opacity: 1;
-        transform: translate(-50%, 0%);
     }
 </style>
 </head>
@@ -119,35 +99,9 @@
 <script>
 const examDate = new Date("2026-05-08T09:00:00");
 
-const lastValues = {
-    days: null,
-    hours: null,
-    mins: null,
-    secs: null
-};
-
-function animateDigit(container, newValue, key) {
-    if (lastValues[key] === newValue) return;
-    lastValues[key] = newValue;
-
-    const oldSpan = container.querySelector("span");
-
-    const newSpan = document.createElement("span");
-    newSpan.textContent = newValue;
-    newSpan.classList.add("in");
-    container.appendChild(newSpan);
-
-    requestAnimationFrame(() => {
-        if (oldSpan) oldSpan.classList.add("out");
-
-        newSpan.classList.remove("in");
-        newSpan.classList.add("in-active");
-    });
-
-    // ✅ Safety delay increased to prevent overlapping digits
-    setTimeout(() => {
-        if (oldSpan && oldSpan.parentNode) oldSpan.remove();
-    }, 650);
+// Helper to pad numbers (02, 07, 09, etc.)
+function pad(num) {
+    return num.toString().padStart(2, "0");
 }
 
 function update() {
@@ -161,18 +115,14 @@ function update() {
     const m = Math.floor((diff / (1000 * 60)) % 60);
     const s = Math.floor((diff / 1000) % 60);
 
-    animateDigit(document.getElementById("days"), d, "days");
-    animateDigit(document.getElementById("hours"), h, "hours");
-    animateDigit(document.getElementById("mins"), m, "mins");
-    animateDigit(document.getElementById("secs"), s, "secs");
+    document.getElementById("days").innerHTML = `<span>${pad(d)}</span>`;
+    document.getElementById("hours").innerHTML = `<span>${pad(h)}</span>`;
+    document.getElementById("mins").innerHTML = `<span>${pad(m)}</span>`;
+    document.getElementById("secs").innerHTML = `<span>${pad(s)}</span>`;
 }
 
-function init() {
-    update();
-    setInterval(update, 1000);
-}
-
-init();
+update();
+setInterval(update, 1000);
 </script>
 
 </body>
