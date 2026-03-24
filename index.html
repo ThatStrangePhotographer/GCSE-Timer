@@ -1,99 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GCSE Countdown</title>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            background: linear-gradient(135deg, #0e0e10, #1b1f23);
-            color: #fff;
-            font-family: "Segoe UI", Arial, sans-serif;
-            text-align: center;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCSE Countdown</title>
 
-        /* Subtle blurred bubbles in background */
-        .blob {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: #4f91ff33;
-            filter: blur(120px);
-            border-radius: 50%;
-            animation: float 12s ease-in-out infinite alternate;
-        }
-        .blob:nth-child(1) { top: -100px; left: -100px; }
-        .blob:nth-child(2) { bottom: -120px; right: -80px; animation-duration: 16s; }
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(180deg, #1e1f23, #0e0e11);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        overflow: hidden;
+        color: white;
+    }
 
-        @keyframes float {
-            from { transform: translateY(0px); }
-            to { transform: translateY(40px); }
-        }
+    /* blurred background blobs */
+    .blob {
+        position: absolute;
+        width: 450px;
+        height: 450px;
+        background: #6a77ff40;
+        filter: blur(140px);
+        border-radius: 50%;
+        animation: move 12s ease-in-out infinite alternate;
+    }
+    .blob:nth-child(1) { top: -80px; left: -80px; }
+    .blob:nth-child(2) { bottom: -100px; right: -70px; animation-duration: 16s; }
+    @keyframes move { from { transform: translateY(0); } to { transform: translateY(40px); } }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px 60px;
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-            z-index: 2;
-        }
+    /* glass container */
+    .glass {
+        position: relative;
+        padding: 35px 50px;
+        background: rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-radius: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
+        text-align: center;
+        width: 85%;
+        max-width: 420px;
+        z-index: 10;
+    }
 
-        h1 {
-            font-size: 2.4rem;
-            margin: 0 0 20px;
-            font-weight: 600;
-        }
+    h1 {
+        margin: 0 0 20px;
+        font-size: 1.3rem;
+        opacity: 0.85;
+        font-weight: 600;
+    }
 
-        #countdown {
-            font-size: 2rem;
-            letter-spacing: 1px;
-            font-weight: 500;
-        }
-    </style>
+    /* split-flap container */
+    .flip {
+        font-size: 2.8rem;
+        font-weight: 700;
+        display: inline-block;
+        perspective: 800px;
+    }
+
+    .digit {
+        display: inline-block;
+        width: 55px;
+        text-align: center;
+        position: relative;
+    }
+
+    /* top half */
+    .digit-top, .digit-bottom {
+        display: block;
+        height: 35px;
+        overflow: hidden;
+    }
+
+    .digit-top {
+        background: rgba(255,255,255,0.1);
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .digit-bottom {
+        background: rgba(255,255,255,0.1);
+        border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* flip animation */
+    .flip-animate {
+        animation: flipdown 0.4s ease;
+        transform-origin: top;
+    }
+
+    @keyframes flipdown {
+        0% { transform: rotateX(0deg); }
+        100% { transform: rotateX(-90deg); }
+    }
+
+    /* spin-in on load */
+    .spin {
+        animation: spinIn 0.65s ease both;
+    }
+
+    @keyframes spinIn {
+        from { transform: rotateY(90deg); opacity: 0; }
+        to   { transform: rotateY(0); opacity: 1; }
+    }
+
+    /* progress bar (iOS style) */
+    .progress-container {
+        width: 100%;
+        background: rgba(255,255,255,0.15);
+        height: 10px;
+        border-radius: 50px;
+        margin-top: 25px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #5c88ff, #9baeff);
+        border-radius: 50px;
+        transition: width 0.6s ease;
+    }
+</style>
+
 </head>
 <body>
 
-    <div class="blob"></div>
-    <div class="blob"></div>
+<div class="blob"></div>
+<div class="blob"></div>
 
-    <div class="glass-card">
-        <h1>Countdown to First GCSE Exam</h1>
-        <div id="countdown">Loading…</div>
+<div class="glass">
+    <h1>GCSE Countdown</h1>
+
+    <div id="flip-container" class="flip"></div>
+
+    <div class="progress-container">
+        <div id="progress" class="progress-bar"></div>
     </div>
+</div>
 
-    <script>
-        function updateCountdown() {
-            const examDate = new Date("2026-05-08T09:00:00");
-            const now = new Date();
-            const diff = examDate - now;
+<script>
+    const examDate = new Date("2026-05-08T09:00:00");
+    const startDate = new Date();
 
-            if (diff <= 0) {
-                document.getElementById("countdown").innerHTML = "It's exam day! Good luck!";
-                return;
+    function createDigit(num, spin=false) {
+        return `
+            <div class="digit">
+                <div class="digit-top ${spin ? 'spin' : ''}">${num}</div>
+                <div class="digit-bottom ${spin ? 'spin' : ''}">${num}</div>
+            </div>
+        `;
+    }
+
+    function updateFlip(oldStr, newStr) {
+        let container = document.getElementById("flip-container");
+        container.innerHTML = "";
+
+        for (let i = 0; i < newStr.length; i++) {
+            const oldDigit = oldStr[i];
+            const newDigit = newStr[i];
+
+            if (oldDigit !== newDigit) {
+                container.innerHTML += `
+                    <div class="digit">
+                        <div class="digit-top flip-animate">${oldDigit}</div>
+                        <div class="digit-bottom">${newDigit}</div>
+                    </div>`;
+            } else {
+                container.innerHTML += createDigit(newDigit);
             }
+        }
+    }
 
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const mins = Math.floor((diff / (1000 * 60)) % 60);
-            const secs = Math.floor((diff / 1000) % 60);
+    let lastString = "";
 
-            document.getElementById("countdown").innerHTML =
-                `${days}d ${hours}h ${mins}m ${secs}s`;
+    function updateCountdown() {
+        const now = new Date();
+        const diff = examDate - now;
+
+        if (diff <= 0) {
+            document.getElementById("flip-container").innerHTML =
+                "<h2>It's exam day!</h2>";
+            return;
         }
 
-        updateCountdown();
-        setInterval(updateCountdown, 1000);
-    </script>
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+
+        const str = `${days}d ${hours}h ${mins}m ${secs}s`;
+
+        if (lastString === "") {
+            // first load: spin everything in
+            for (let char of str) {
+                document.getElementById("flip-container").innerHTML += createDigit(char, true);
+            }
+        } else {
+            updateFlip(lastString, str);
+        }
+
+        lastString = str;
+
+        // update progress bar
+        const total = examDate - startDate;
+        const progress = ((total - diff) / total) * 100;
+        document.getElementById("progress").style.width = progress + "%";
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+</script>
 
 </body>
 </html>
