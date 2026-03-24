@@ -18,7 +18,7 @@
         color: white;
     }
 
-    /* blurred background blobs */
+    /* background glow blobs */
     .blob {
         position: absolute;
         width: 450px;
@@ -30,77 +30,91 @@
     }
     .blob:nth-child(1) { top: -80px; left: -80px; }
     .blob:nth-child(2) { bottom: -100px; right: -70px; animation-duration: 16s; }
-    @keyframes move { from { transform: translateY(0); } to { transform: translateY(40px); } }
 
-    /* glass container */
+    @keyframes move {
+        from { transform: translateY(0); }
+        to   { transform: translateY(40px); }
+    }
+
+    /* glass card */
     .glass {
         position: relative;
-        padding: 35px 50px;
+        padding: 30px 40px;
         background: rgba(255, 255, 255, 0.14);
         backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
         border-radius: 25px;
         border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 25px 55px rgba(0, 0, 0, 0.4);
         text-align: center;
-        width: 85%;
-        max-width: 420px;
-        z-index: 10;
+        width: 90%;
+        max-width: 480px;
     }
 
     h1 {
-        margin: 0 0 20px;
-        font-size: 1.3rem;
+        margin: 0 0 25px;
+        font-size: 1.4rem;
         opacity: 0.85;
         font-weight: 600;
     }
 
-    /* split-flap container */
-    .flip {
-        font-size: 2.8rem;
-        font-weight: 700;
-        display: inline-block;
-        perspective: 800px;
+    /* GRID LAYOUT --- numbers flip, labels stay normal */
+    .count-grid {
+        display: grid;
+        grid-template-columns: repeat(8, auto);
+        gap: 6px;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
     }
 
-    .digit {
-        display: inline-block;
-        width: 55px;
-        text-align: center;
+    /* digit flip block */
+    .digit-box {
         position: relative;
+        width: 38px;
+        height: 48px;
+        perspective: 900px;
+        display: flex;
+        justify-content: center;
     }
 
-    /* top half */
-    .digit-top, .digit-bottom {
-        display: block;
-        height: 35px;
-        overflow: hidden;
+    /* static label (d h m s) */
+    .label {
+        font-size: 1.2rem;
+        opacity: 0.75;
+        width: 20px;
+        text-align: center;
     }
 
-    .digit-top {
+    /* flip halves */
+    .digit {
+        font-size: 2rem;
+        font-weight: 700;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0; left: 0;
+        display:flex;
+        justify-content:center;
+        align-items:center;
         background: rgba(255,255,255,0.1);
-        border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .digit-bottom {
-        background: rgba(255,255,255,0.1);
-        border-top: 1px solid rgba(255,255,255,0.2);
+        border-radius: 6px;
+        backface-visibility:hidden;
     }
 
     /* flip animation */
-    .flip-animate {
-        animation: flipdown 0.4s ease;
+    .flip {
+        animation: flipDown 0.45s ease;
         transform-origin: top;
     }
 
-    @keyframes flipdown {
-        0% { transform: rotateX(0deg); }
-        100% { transform: rotateX(-90deg); }
+    @keyframes flipDown {
+        0%   { transform: rotateX(0deg); }
+        100% { transform: rotateX(-90deg); opacity:0; }
     }
 
     /* spin-in on load */
     .spin {
-        animation: spinIn 0.65s ease both;
+        animation: spinIn 0.7s ease both;
     }
 
     @keyframes spinIn {
@@ -108,13 +122,12 @@
         to   { transform: rotateY(0); opacity: 1; }
     }
 
-    /* progress bar (iOS style) */
+    /* progress bar */
     .progress-container {
         width: 100%;
-        background: rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.2);
         height: 10px;
         border-radius: 50px;
-        margin-top: 25px;
         overflow: hidden;
     }
 
@@ -136,7 +149,7 @@
 <div class="glass">
     <h1>GCSE Countdown</h1>
 
-    <div id="flip-container" class="flip"></div>
+    <div class="count-grid" id="countGrid"></div>
 
     <div class="progress-container">
         <div id="progress" class="progress-bar"></div>
@@ -144,76 +157,95 @@
 </div>
 
 <script>
-    const examDate = new Date("2026-05-08T09:00:00");
-    const startDate = new Date();
+const examDate = new Date("2026-05-08T09:00:00");
+const startDate = new Date();
 
-    function createDigit(num, spin=false) {
-        return `
-            <div class="digit">
-                <div class="digit-top ${spin ? 'spin' : ''}">${num}</div>
-                <div class="digit-bottom ${spin ? 'spin' : ''}">${num}</div>
-            </div>
-        `;
+let lastDigits = "";
+
+function createDigitBox(digit, spin=false) {
+    return `
+        <div class="digit-box">
+            <div class="digit ${spin ? "spin" : ""}">${digit}</div>
+        </div>
+    `;
+}
+
+function renderDigits(str, spinAll=false) {
+    const grid = document.getElementById("countGrid");
+    grid.innerHTML = "";
+
+    const parts = str.split("");
+
+    for (let char of parts) {
+        if (!isNaN(char)) {
+            grid.innerHTML += createDigitBox(char, spinAll);
+        } else {
+            grid.innerHTML += `<div class="label">${char}</div>`;
+        }
     }
+}
 
-    function updateFlip(oldStr, newStr) {
-        let container = document.getElementById("flip-container");
-        container.innerHTML = "";
+function flipDigits(oldStr, newStr) {
+    const grid = document.getElementById("countGrid");
+    grid.innerHTML = "";
 
-        for (let i = 0; i < newStr.length; i++) {
-            const oldDigit = oldStr[i];
-            const newDigit = newStr[i];
+    for (let i = 0; i < newStr.length; i++) {
+        const oldChar = oldStr[i];
+        const newChar = newStr[i];
 
-            if (oldDigit !== newDigit) {
-                container.innerHTML += `
-                    <div class="digit">
-                        <div class="digit-top flip-animate">${oldDigit}</div>
-                        <div class="digit-bottom">${newDigit}</div>
-                    </div>`;
+        if (!isNaN(newChar)) {
+            if (oldChar !== newChar) {
+                grid.innerHTML += `
+                    <div class="digit-box">
+                        <div class="digit flip">${oldChar}</div>
+                        <div class="digit" style="transform: rotateX(90deg)">${newChar}</div>
+                    </div>
+                `;
             } else {
-                container.innerHTML += createDigit(newDigit);
-            }
-        }
-    }
-
-    let lastString = "";
-
-    function updateCountdown() {
-        const now = new Date();
-        const diff = examDate - now;
-
-        if (diff <= 0) {
-            document.getElementById("flip-container").innerHTML =
-                "<h2>It's exam day!</h2>";
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / (1000 * 60)) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-
-        const str = `${days}d ${hours}h ${mins}m ${secs}s`;
-
-        if (lastString === "") {
-            // first load: spin everything in
-            for (let char of str) {
-                document.getElementById("flip-container").innerHTML += createDigit(char, true);
+                grid.innerHTML += createDigitBox(newChar);
             }
         } else {
-            updateFlip(lastString, str);
+            grid.innerHTML += `<div class="label">${newChar}</div>`;
         }
+    }
+}
 
-        lastString = str;
+function updateCountdown() {
+    const now = new Date();
+    const diff = examDate - now;
 
-        // update progress bar
-        const total = examDate - startDate;
-        const progress = ((total - diff) / total) * 100;
-        document.getElementById("progress").style.width = progress + "%";
+    if (diff <= 0) {
+        document.getElementById("countGrid").innerHTML = "<h2>It's Exam Day!</h2>";
+        return;
     }
 
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff / 3600000) % 24);
+    const mins = Math.floor((diff / 60000) % 60);
+    const secs = Math.floor((diff / 1000) % 60);
+
+    const str =
+        String(days).padStart(2, "0") + "d" +
+        String(hours).padStart(2, "0") + "h" +
+        String(mins).padStart(2, "0") + "m" +
+        String(secs).padStart(2, "0") + "s";
+
+    if (lastDigits === "") {
+        renderDigits(str, true); // spin-in on first load
+    } else {
+        flipDigits(lastDigits, str);
+    }
+
+    lastDigits = str;
+
+    // update progress %
+    const total = examDate - startDate;
+    const progress = ((total - diff) / total) * 100;
+    document.getElementById("progress").style.width = progress + "%";
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
 </script>
 
 </body>
