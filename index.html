@@ -18,20 +18,63 @@
     }
 
     #next-exam-title {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         text-align: center;
-        margin-bottom: 25px;
+        margin-bottom: 10px;
         font-weight: 600;
-        letter-spacing: 1px;
+    }
+
+    #next-exam-countdown {
+        text-align: center;
+        font-size: 1.2rem;
+        margin-bottom: 25px;
+        opacity: 0.8;
+    }
+
+    .filter-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .filter-btn {
+        padding: 8px 15px;
+        background: rgba(255,255,255,0.08);
+        border: none;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .filter-btn.active {
+        background: rgba(255,255,255,0.25);
     }
 
     .exam-card {
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255,255,255,0.06);
         border-radius: 18px;
         padding: 18px;
         margin-bottom: 20px;
         box-shadow: 0 0 30px #0003;
         backdrop-filter: blur(6px);
+        position: relative;
+    }
+
+    .star {
+        position: absolute;
+        right: 18px;
+        top: 18px;
+        font-size: 1.6rem;
+        cursor: pointer;
+        user-select: none;
+        transition: 0.2s;
+    }
+
+    .star.faved {
+        color: gold;
+        text-shadow: 0 0 10px gold;
     }
 
     .exam-name {
@@ -82,17 +125,26 @@
 </head>
 <body>
 
-<div id="next-exam-title">Next Exam: Loading...</div>
+<!-- NEXT EXAM SECTION -->
+<div id="next-exam-title">Next GCSE Exam: Loading...</div>
+<div id="next-exam-countdown"></div>
 
+<!-- FILTER BUTTONS -->
+<div class="filter-buttons">
+    <button class="filter-btn active" id="show-all">📄 All Exams</button>
+    <button class="filter-btn" id="show-fav">⭐ Favourites</button>
+</div>
+
+<!-- MAIN LIST -->
 <div id="exam-list"></div>
 
 <script>
 // ✅ FULL LIST OF EXAMS
 let exams = [
-    { name: "3DD 11D", date: "2026-04-21T09:00:00"},
-    { name: "3DD 11E", date: "2026-04-30T09:00:00"},
-    { name: "3DD 11H", date: "2026-04-27T09:00:00"},
-    { name: "3DD 11G", date: "2026-04-30T09:00:00"},
+    { name: "3D-Design 11D", date: "2026-04-21T09:00:00"},
+    { name: "3D-Design 11E", date: "2026-04-30T09:00:00"},
+    { name: "3D-Design 11H", date: "2026-04-27T09:00:00"},
+    { name: "3D-Design 11G", date: "2026-04-30T09:00:00"},
     { name: "Photography 11C", date: "2026-04-22T09:00:00"},
     { name: "Photography 11F", date: "2026-04-29T09:00:00"},
     { name: "Art 11B", date: "2026-04-23T09:00:00"},
@@ -128,71 +180,130 @@ let exams = [
     { name: "Spanish Writing", date: "2026-06-16T09:00:00" }
 ];
 
-// ✅ Convert to real dates + sort
+// ✅ Convert to date objects + sort
 exams = exams.map(e => ({ ...e, date: new Date(e.date) }))
              .sort((a, b) => a.date - b.date);
 
-// ✅ Helper for formatting
+// ✅ Load favourites from localStorage
+let favourites = JSON.parse(localStorage.getItem("favouriteExams") || "[]");
+
+// ✅ Save favourites
+function saveFavs() {
+    localStorage.setItem("favouriteExams", JSON.stringify(favourites));
+}
+
+// ✅ Helper
 function pad(n) { return n.toString().padStart(2, "0"); }
 
-// ✅ Create exam cards
-const examList = document.getElementById("exam-list");
-exams.forEach((exam, i) => {
-    const card = document.createElement("div");
-    card.className = "exam-card";
-    card.innerHTML = `
-        <div class="exam-name">${exam.name}</div>
-        <div class="exam-date">${exam.date.toLocaleString()}</div>
-        <div class="countdown-row" id="cd-${i}">
-            <div class="time-box"><span id="d-${i}">--</span><div class="label">Days</div></div>
-            <div class="time-box"><span id="h-${i}">--</span><div class="label">Hours</div></div>
-            <div class="time-box"><span id="m-${i}">--</span><div class="label">Mins</div></div>
-            <div class="time-box"><span id="s-${i}">--</span><div class="label">Secs</div></div>
-        </div>
-    `;
-    examList.appendChild(card);
-});
+// ✅ FILTER HANDLING
+let showFavOnly = false;
 
-// ✅ Update timers + next exam
-function update() {
+document.getElementById("show-all").onclick = () => {
+    showFavOnly = false;
+    document.getElementById("show-all").classList.add("active");
+    document.getElementById("show-fav").classList.remove("active");
+    renderExams();
+};
+
+document.getElementById("show-fav").onclick = () => {
+    showFavOnly = true;
+    document.getElementById("show-fav").classList.add("active");
+    document.getElementById("show-all").classList.remove("active");
+    renderExams();
+};
+
+// ✅ Render cards
+function renderExams() {
+    const examList = document.getElementById("exam-list");
+    examList.innerHTML = "";
+
+    exams.forEach((exam, i) => {
+        if (showFavOnly && !favourites.includes(exam.name)) return;
+
+        const card = document.createElement("div");
+        card.className = "exam-card";
+
+        const isFav = favourites.includes(exam.name);
+        const starClass = isFav ? "star faved" : "star";
+
+        card.innerHTML = `
+            <div class="${starClass}" data-name="${exam.name}">★</div>
+            <div class="exam-name">${exam.name}</div>
+            <div class="exam-date">${exam.date.toLocaleString()}</div>
+
+            <div class="countdown-row" id="cd-${i}">
+                <div class="time-box"><span id="d-${i}">--</span><div class="label">Days</div></div>
+                <div class="time-box"><span id="h-${i}">--</span><div class="label">Hours</div></div>
+                <div class="time-box"><span id="m-${i}">--</span><div class="label">Mins</div></div>
+                <div class="time-box"><span id="s-${i}">--</span><div class="label">Secs</div></div>
+            </div>
+        `;
+        examList.appendChild(card);
+    });
+
+    // ✅ STAR BUTTON HANDLING
+    document.querySelectorAll(".star").forEach(star => {
+        star.onclick = () => {
+            const name = star.dataset.name;
+
+            if (favourites.includes(name)) {
+                favourites = favourites.filter(f => f !== name);
+            } else {
+                favourites.push(name);
+            }
+
+            saveFavs();
+            renderExams(); // Refresh UI
+        };
+    });
+}
+
+// ✅ Update countdowns + next exam
+function updateTimers() {
     const now = new Date();
 
-    // ✅ Determine next upcoming exam
+    // ✅ NEXT EXAM
     let nextExam = exams.find(e => e.date > now);
+
     if (!nextExam) {
         document.getElementById("next-exam-title").innerText = "All exams completed!";
+        document.getElementById("next-exam-countdown").innerText = "";
     } else {
+        const diff = nextExam.date - now;
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
         document.getElementById("next-exam-title").innerText =
-            "Next Exam: " + nextExam.name + " (" + nextExam.date.toLocaleString() + ")";
+            `Next GCSE Exam: ${nextExam.name}`;
+
+        document.getElementById("next-exam-countdown").innerText =
+            `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
     }
 
-    // ✅ Update each exam countdown
+    // ✅ Update all exam cards
     exams.forEach((exam, i) => {
         const diff = exam.date - now;
-
-        if (diff <= 0) {
-            document.getElementById(`d-${i}`).innerText = "00";
-            document.getElementById(`h-${i}`).innerText = "00";
-            document.getElementById(`m-${i}`).innerText = "00";
-            document.getElementById(`s-${i}`).innerText = "00";
-            return;
-        }
+        if (diff <= 0) return;
 
         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
         const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const m = Math.floor((diff / (1000 * 60)) % 60);
         const s = Math.floor((diff / 1000) % 60);
 
-        document.getElementById(`d-${i}`).innerText = pad(d);
-        document.getElementById(`h-${i}`).innerText = pad(h);
-        document.getElementById(`m-${i}`).innerText = pad(m);
-        document.getElementById(`s-${i}`).innerText = pad(s);
+        if (document.getElementById(`d-${i}`)) {
+            document.getElementById(`d-${i}`).innerText = pad(d);
+            document.getElementById(`h-${i}`).innerText = pad(h);
+            document.getElementById(`m-${i}`).innerText = pad(m);
+            document.getElementById(`s-${i}`).innerText = pad(s);
+        }
     });
 }
 
-update();
-setInterval(update, 1000);
-
+renderExams();
+updateTimers();
+setInterval(updateTimers, 1000);
 </script>
 
 </body>
