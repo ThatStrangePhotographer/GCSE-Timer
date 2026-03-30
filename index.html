@@ -265,6 +265,26 @@ function renderExams() {
 function updateTimers() {
     const now = new Date();
 
+    // ✅ NEXT EXAM — find first exam in the future
+    let nextExam = exams.find(e => e.date > now);
+
+    if (!nextExam) {
+        document.getElementById("next-exam-title").innerText = "All exams completed!";
+        document.getElementById("next-exam-countdown").innerText = "";
+    } else {
+        const diff = nextExam.date - now;
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24));
+        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
+        document.getElementById("next-exam-title").innerText =
+            `Next GCSE Exam: ${nextExam.name}`;
+
+        document.getElementById("next-exam-countdown").innerText =
+            `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    }
+    
     // ✅ Update all exam cards
     exams.forEach((exam, i) => {
         const diff = exam.date - now;
@@ -288,7 +308,7 @@ function updateTimers() {
             return;
         }
 
-        // ✅ Normal countdown (exam in future)
+        // ✅ Normal countdown
         const d = Math.floor(diff / (1000 * 60 * 60 * 24));
         const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const m = Math.floor((diff / (1000 * 60)) % 60);
@@ -300,14 +320,14 @@ function updateTimers() {
             document.getElementById(`m-${i}`).innerText = pad(m);
             document.getElementById(`s-${i}`).innerText = pad(s);
         }
-    });  
+    });  // ✅ closes forEach loop
 
-} 
-    
+}  // ✅ ✅ closes updateTimers() — THIS is the line you were missing!
+
 renderExams();
 updateTimers();
 setInterval(updateTimers, 1000);
-    
+
 </script>
 
 </body>
