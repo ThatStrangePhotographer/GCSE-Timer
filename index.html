@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>George's GCSE Countdown</title>
+<title>GCSE Countdown</title>
 
 <style>
     body {
@@ -17,16 +17,17 @@
         box-sizing: border-box;
     }
 
-    /* ✅ Sticky Header (unchanged, maybe less blur for performance) */
+    /* ✅ Sticky Header */
     #sticky-next {
         position: sticky;
         top: 0;
         z-index: 10;
         padding: 12px 10px 18px 10px;
-        background: rgba(0,0,0,0.35);
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: blur(8px);
         border-radius: 12px;
         margin-bottom: 20px;
-        box-shadow: 0 0 10px #0006;
+        box-shadow: 0 0 18px #0008;
     }
 
     #next-exam-title {
@@ -54,6 +55,7 @@
         font-size: 1rem;
         background: rgba(255,255,255,0.1);
         color: white;
+        backdrop-filter: blur(4px);
     }
 
     .filter-buttons {
@@ -77,17 +79,20 @@
         background: rgba(255,255,255,0.25);
     }
 
-    /* ✅ Exam Cards (lighter for performance) */
+    /* ✅ Exam Cards */
     .exam-card {
         background: rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 16px;
-        margin-bottom: 16px;
-        box-shadow: 0 0 12px #0002;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 30px #0003;
+        backdrop-filter: blur(6px);
+        position: relative;
         border: 2px solid transparent;
-        transition: 0.15s;
+        transition: 0.2s;
     }
 
+    /* ✅ Urgency Colour Coding */
     .exam-card.yellow { border-color: #ffe066; }
     .exam-card.orange { border-color: #ff9f43; }
     .exam-card.red { border-color: #ff6b6b; }
@@ -218,10 +223,10 @@ let exams = [
     { name: "Physics Paper 2", date: "2026-06-15T09:00:00" },
     { name: "Spanish Writing", date: "2026-06-16T09:00:00" },
     { name: "Chemistry Paper 2", date: "2026-06-12T09:00:00" },
-    { name: "Test Paper 1", date: "2026-03-30T10:55:00" },
     { name: "MFL additional languages @ Canterbury Academy", date: "2026-05-12T09:00:00" }
 ];
 
+/* ✅ Add stable unique ID */
 exams = exams.map((e, index) => ({
     ...e,
     date: new Date(e.date),
@@ -245,17 +250,34 @@ function urgencyClass(e) {
     if (isStarted(e)) return "orange";
 
     const diff = e.date - Date.now();
-    if (diff < 600000) return "red";
-    if (diff < 3600000) return "orange";
-    if (diff < 86400000) return "yellow";
+
+    if (diff < 600000) return "red";      // <10m
+    if (diff < 3600000) return "orange";  // <1h
+    if (diff < 86400000) return "yellow"; // <24h
+
     return "";
 }
 
-/* ✅ Sorting once */
+/* -----------------------------
+   ✅ Sorting Rules
+------------------------------ */
 function sortedExams() {
-    return exams.slice().sort((a, b) => a.date - b.date);
+    return exams.slice().sort((a, b) => {
+        const Astart = isStarted(a), Bstart = isStarted(b);
+        const Afin = isFinished(a), Bfin = isFinished(b);
+
+        if (!Afin && !Astart && !Bfin && !Bstart)
+            return a.date - b.date;
+
+        if (Astart && !Bstart) return -1;
+        if (Bstart && !Astart) return 1;
+
+        if (Afin && !Bfin) return 1;
+        if (Bfin && !Afin) return -1;
+
+        return 0;
+    });
 }
-let sorted = sortedExams();
 
 /* -----------------------------
    ✅ Favourites
@@ -266,24 +288,7 @@ function saveFavs() {
 }
 
 /* -----------------------------
-   ✅ Virtual Scroll Config
------------------------------- */
-const EXAM_CARD_HEIGHT = 170; 
-const BUFFER = 4;
-
-function getVisibleRange() {
-    const scrollTop = window.scrollY;
-    const viewportHeight = window.innerHeight;
-    const start = Math.floor(scrollTop / EXAM_CARD_HEIGHT) - BUFFER;
-    const end = Math.ceil((scrollTop + viewportHeight) / EXAM_CARD_HEIGHT) + BUFFER;
-    return {
-        start: Math.max(0, start),
-        end
-    };
-}
-
-/* -----------------------------
-   ✅ UI + Search + Filters
+   ✅ UI Interactions
 ------------------------------ */
 let showFavOnly = false;
 let searchText = "";
@@ -308,39 +313,35 @@ document.getElementById("search-bar").oninput = e => {
 };
 
 /* -----------------------------
-   ✅ Render (Virtualised)
+   ✅ Render Cards
 ------------------------------ */
 function render() {
     const list = document.getElementById("exam-list");
     list.innerHTML = "";
 
-    const filtered = sorted.filter(exam => {
+    const filtered = sortedExams().filter(exam => {
         const matchesSearch = exam.name.toLowerCase().includes(searchText);
         const matchesFav = !showFavOnly || favourites.includes(exam.name);
         return matchesSearch && matchesFav;
     });
 
-    const { start, end } = getVisibleRange();
-    const safeEnd = Math.min(filtered.length, end);
-
-    const fragment = document.createDocumentFragment();
-
-    const topSpacer = document.createElement("div");
-    topSpacer.style.height = `${start * EXAM_CARD_HEIGHT}px`;
-    fragment.appendChild(topSpacer);
-
-    for (let i = start; i < safeEnd; i++) {
-        const exam = filtered[i];
+    filtered.forEach(exam => {
         const card = document.createElement("div");
         card.className = `exam-card ${urgencyClass(exam)}`;
 
         const favClass = favourites.includes(exam.name) ? "star faved" : "star";
 
+        const status = isFinished(exam)
+            ? "Finished ✅"
+            : isStarted(exam)
+                ? "Started"
+                : "Time Remaining:";
+
         card.innerHTML = `
             <div class="${favClass}" data-name="${exam.name}">★</div>
             <div class="exam-name">${exam.name}</div>
             <div class="exam-date">${exam.date.toLocaleString()}</div>
-            <div class="status-bar">${isFinished(exam) ? "Finished ✅" : isStarted(exam) ? "Started" : "Time Remaining:"}</div>
+            <div class="status-bar">${status}</div>
 
             <div class="countdown-row">
                 <div class="time-box"><span id="d-${exam.uid}">--</span><div class="label">Days</div></div>
@@ -350,23 +351,15 @@ function render() {
             </div>
         `;
 
-        fragment.appendChild(card);
-    }
+        list.appendChild(card);
+    });
 
-    const bottomSpacer = document.createElement("div");
-    bottomSpacer.style.height = `${(filtered.length - safeEnd) * EXAM_CARD_HEIGHT}px`;
-    fragment.appendChild(bottomSpacer);
-
-    list.appendChild(fragment);
-
+    /* ✅ Star Toggle */
     document.querySelectorAll(".star").forEach(star => {
         star.onclick = () => {
             const name = star.dataset.name;
-            if (favourites.includes(name)) {
-                favourites = favourites.filter(f => f !== name);
-            } else {
-                favourites.push(name);
-            }
+            if (favourites.includes(name)) favourites = favourites.filter(f => f !== name);
+            else favourites.push(name);
             saveFavs();
             render();
         };
@@ -374,33 +367,45 @@ function render() {
 }
 
 /* -----------------------------
-   ✅ Update Timers
+   ✅ Update Timers (1/sec)
 ------------------------------ */
 function updateTimers() {
     const now = new Date();
 
-    const upcoming = sorted.filter(e => !isFinished(e));
+    /* ✅ Next Exam */
+    const upcoming = sortedExams().filter(e => !isFinished(e));
     const first = upcoming[0];
 
     if (!first) {
-        nextTitle.innerText = "All exams completed!";
-        nextCountdown.innerText = "";
+        document.getElementById("next-exam-title").innerText = "All exams completed!";
+        document.getElementById("next-exam-countdown").innerText = "";
     } else {
         let diff = first.date - now;
         if (diff < 0) diff = 0;
+
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
 
-        nextTitle.innerText = `Next GCSE Exam: ${first.name}`;
-        nextCountdown.innerText = `${d}d ${h}h ${m}m ${s}s`;
+        let status = isFinished(first)
+            ? "Finished ✅"
+            : isStarted(first)
+                ? "Started"
+                : `${d}d ${h}h ${m}m ${s}s`;
+
+        document.getElementById("next-exam-title").innerText =
+            `Next GCSE Exam: ${first.name}`;
+
+        document.getElementById("next-exam-countdown").innerText = status;
     }
 
-    sorted.forEach(exam => {
+    /* ✅ Update all countdown boxes */
+    sortedExams().forEach(exam => {
         const diff = exam.date - now;
+
         const dSpan = document.getElementById(`d-${exam.uid}`);
-        if (!dSpan) return;
+        if (!dSpan) return; // not currently visible
 
         if (isFinished(exam) || isStarted(exam)) {
             dSpan.innerText = "0";
@@ -420,27 +425,14 @@ function updateTimers() {
         document.getElementById(`m-${exam.uid}`).innerText = m;
         document.getElementById(`s-${exam.uid}`).innerText = s;
     });
-
-    setTimeout(() => requestAnimationFrame(updateTimers), 1000);
 }
 
-/* -----------------------------
-   ✅ Init
------------------------------- */
 render();
 updateTimers();
-window.addEventListener("scroll", render);
-
-let scrollTimeout = null;
-
-window.addEventListener("scroll", () => {
-    if (scrollTimeout) clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-        render();
-        scrollTimeout = null;
-    }, 80);
-});
-
+setInterval(updateTimers, 1000);
 </script>
+
 </body>
 </html>
+
+
