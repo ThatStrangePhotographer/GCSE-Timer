@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GCSE Countdown</title>
+<title>George's GCSE Countdown</title>
 
 <style>
     body {
@@ -113,33 +113,26 @@
     }
 
     @media (max-width: 600px) {
-        .time-box {
-            width: 70px;
-        }
-        .time-box span {
-            font-size: 1.8rem;
-        }
+        .time-box { width: 70px; }
+        .time-box span { font-size: 1.8rem; }
         .exam-name { font-size: 1.2rem; }
     }
 </style>
 </head>
 <body>
 
-<!-- NEXT EXAM SECTION -->
 <div id="next-exam-title">Next GCSE Exam: Loading...</div>
 <div id="next-exam-countdown"></div>
 
-<!-- FILTER BUTTONS -->
 <div class="filter-buttons">
     <button class="filter-btn active" id="show-all">📄 All Exams</button>
     <button class="filter-btn" id="show-fav">⭐ Favourites</button>
 </div>
 
-<!-- MAIN LIST -->
 <div id="exam-list"></div>
 
 <script>
-// ✅ FULL LIST OF EXAMS
+// ✅ Full exam list
 let exams = [
     { name: "3D-Design 11D", date: "2026-04-21T09:00:00"},
     { name: "3D-Design 11E", date: "2026-04-30T09:00:00"},
@@ -183,11 +176,11 @@ let exams = [
     { name: "MFL additional languages @ Canterbury Academy", date: "2026-05-12T09:00:00" }
 ];
 
-// ✅ Convert to date objects + sort
-exams = exams.map(e => ({ ...e, date: new Date(e.date) }))
-             .sort((a, b) => a.date - b.date);
+// ✅ Prepare exam objects
+exams = exams.map(e => ({ ...e, date: new Date(e.date)}))
+             .sort((a,b) => a.date - b.date);
 
-// ✅ Load favourites from localStorage
+// ✅ Load favourites
 let favourites = JSON.parse(localStorage.getItem("favouriteExams") || "[]");
 
 // ✅ Save favourites
@@ -195,19 +188,16 @@ function saveFavs() {
     localStorage.setItem("favouriteExams", JSON.stringify(favourites));
 }
 
-// ✅ Helper
-function pad(n) { return n.toString().padStart(2, "0"); }
+function pad(n) { return String(n).padStart(2, "0"); }
 
-// ✅ FILTER HANDLING
+// ✅ Filter toggle
 let showFavOnly = false;
-
 document.getElementById("show-all").onclick = () => {
     showFavOnly = false;
     document.getElementById("show-all").classList.add("active");
     document.getElementById("show-fav").classList.remove("active");
     renderExams();
 };
-
 document.getElementById("show-fav").onclick = () => {
     showFavOnly = true;
     document.getElementById("show-fav").classList.add("active");
@@ -244,19 +234,17 @@ function renderExams() {
         examList.appendChild(card);
     });
 
-    // ✅ STAR BUTTON HANDLING
+    // ✅ Star: add/remove favourite
     document.querySelectorAll(".star").forEach(star => {
         star.onclick = () => {
             const name = star.dataset.name;
-
             if (favourites.includes(name)) {
                 favourites = favourites.filter(f => f !== name);
             } else {
                 favourites.push(name);
             }
-
             saveFavs();
-            renderExams(); // Refresh UI
+            renderExams();
         };
     });
 }
@@ -265,53 +253,47 @@ function renderExams() {
 function updateTimers() {
     const now = new Date();
 
-    // ✅ NEXT EXAM — find first exam in the future
+    // ✅ Find next upcoming exam
     let nextExam = exams.find(e => e.date > now);
-
     if (!nextExam) {
         document.getElementById("next-exam-title").innerText = "All exams completed!";
         document.getElementById("next-exam-countdown").innerText = "";
     } else {
         const diff = nextExam.date - now;
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24));
-        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const d = Math.floor(diff / (1000*60*60*24));
+        const h = Math.floor((diff / (1000*60*60)) % 24);
+        const m = Math.floor((diff / (1000*60)) % 60);
         const s = Math.floor((diff / 1000) % 60);
 
         document.getElementById("next-exam-title").innerText =
             `Next GCSE Exam: ${nextExam.name}`;
-
         document.getElementById("next-exam-countdown").innerText =
             `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
     }
-    
-    // ✅ Update all exam cards
+
+    // ✅ Update every exam card
     exams.forEach((exam, i) => {
         const diff = exam.date - now;
 
-        // ✅ Exam has already started or passed
+        // ✅ If exam is now or past
         if (diff <= 0) {
-
-            // ✅ How long since exam started?
             const sinceStart = now - exam.date;
 
-            // ✅ For first 60 minutes → "Started"
             if (sinceStart < 60 * 60 * 1000) {
                 document.getElementById(`cd-${i}`).innerHTML =
                     "<div style='text-align:center; font-size:1.2rem; opacity:0.85;'>Started</div>";
                 return;
             }
 
-            // ✅ After 60 minutes → "Finished ✅"
             document.getElementById(`cd-${i}`).innerHTML =
                 "<div style='text-align:center; font-size:1.2rem; color:#4caf50;'>Finished ✅</div>";
             return;
         }
 
         // ✅ Normal countdown
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diff / (1000 * 60)) % 60);
+        const d = Math.floor(diff / (1000*60*60*24));
+        const h = Math.floor((diff / (1000*60*60)) % 24);
+        const m = Math.floor((diff / (1000*60)) % 60);
         const s = Math.floor((diff / 1000) % 60);
 
         if (document.getElementById(`d-${i}`)) {
@@ -320,14 +302,12 @@ function updateTimers() {
             document.getElementById(`m-${i}`).innerText = pad(m);
             document.getElementById(`s-${i}`).innerText = pad(s);
         }
-    });  // ✅ closes forEach loop
-
-}  // ✅ ✅ closes updateTimers() — THIS is the line you were missing!
+    });
+}
 
 renderExams();
 updateTimers();
 setInterval(updateTimers, 1000);
-
 </script>
 
 </body>
