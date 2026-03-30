@@ -430,7 +430,17 @@ function updateTimers() {
 render();
 updateTimers();
 window.addEventListener("scroll", render);
-</script>
 
+let scrollTimeout = null;
+
+window.addEventListener("scroll", () => {
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+        render();
+        scrollTimeout = null;
+    }, 80);
+});
+
+</script>
 </body>
 </html>
