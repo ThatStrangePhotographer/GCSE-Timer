@@ -2,312 +2,314 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>George's GCSE Countdown</title>
+<title>GCSE Exam Countdown</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
     body {
+        font-family: Arial, sans-serif;
         margin: 0;
+        padding: 0;
+        background: #f5f5f5;
+        color: #222;
+    }
+
+    header {
+        background: #4a6cf7;
         padding: 20px;
-        min-height: 100vh;
-        background: radial-gradient(circle at top, #191a1d, #0a0a0c);
-        font-family: "Segoe UI", sans-serif;
         color: white;
-        overflow-y: auto;
-        box-sizing: border-box;
-    }
-
-    #next-exam-title {
-        font-size: 1.6rem;
         text-align: center;
-        margin-bottom: 10px;
-        font-weight: 600;
     }
 
-    #next-exam-countdown {
-        text-align: center;
-        font-size: 1.2rem;
-        margin-bottom: 25px;
-        opacity: 0.8;
+    #nextExam {
+        background: white;
+        margin: 20px auto;
+        max-width: 750px;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
     }
 
-    .filter-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .filter-btn {
-        padding: 8px 15px;
-        background: rgba(255,255,255,0.08);
-        border: none;
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 1rem;
-    }
-
-    .filter-btn.active {
-        background: rgba(255,255,255,0.25);
+    #examList {
+        max-width: 800px;
+        margin: auto;
+        padding-bottom: 50px;
     }
 
     .exam-card {
-        background: rgba(255,255,255,0.06);
-        border-radius: 18px;
+        background: white;
+        margin: 12px 0;
         padding: 18px;
-        margin-bottom: 20px;
-        box-shadow: 0 0 30px #0003;
-        backdrop-filter: blur(6px);
-        position: relative;
-    }
-
-    .star {
-        position: absolute;
-        right: 18px;
-        top: 18px;
-        font-size: 1.6rem;
-        cursor: pointer;
-        user-select: none;
-        transition: 0.2s;
-    }
-
-    .star.faved {
-        color: gold;
-        text-shadow: 0 0 10px gold;
-    }
-
-    .exam-name {
-        font-size: 1.4rem;
-        font-weight: 600;
-        margin-bottom: 6px;
-    }
-
-    .exam-date {
-        opacity: 0.8;
-        margin-bottom: 12px;
-        font-size: 1rem;
-    }
-
-    .countdown-row {
+        border-radius: 10px;
         display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        transition: 0.2s;
+        border: 2px solid transparent;
     }
 
-    .time-box {
+    .exam-card.yellow { border-color: #ffe066; }
+    .exam-card.orange { border-color: #ff9f43; }
+    .exam-card.red { border-color: #ff6b6b; }
+    .exam-card.finished {
+        opacity: 0.55;
+        background: #e0e0e0;
+    }
+
+    .fav {
+        cursor: pointer;
+        font-size: 22px;
+        user-select: none;
+    }
+
+    .search-container {
+        max-width: 800px;
+        margin: auto;
+        display: flex;
+        gap: 10px;
+    }
+
+    #searchBar {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        margin: 20px auto;
+    }
+
+    .filter-buttons {
+        max-width: 800px;
+        margin: 0 auto 20px auto;
         text-align: center;
-        width: 90px;
     }
 
-    .time-box span {
-        display: block;
-        font-size: 2.2rem;
-        font-weight: 700;
+    button {
+        padding: 10px 18px;
+        font-size: 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px;
     }
 
-    .label {
-        opacity: 0.7;
-        font-size: 0.9rem;
+    .active-filter {
+        background: #4a6cf7;
+        color: white;
     }
 
-    @media (max-width: 600px) {
-        .time-box { width: 70px; }
-        .time-box span { font-size: 1.8rem; }
-        .exam-name { font-size: 1.2rem; }
+    .inactive-filter {
+        background: #ddd;
     }
+
 </style>
 </head>
 <body>
 
-<div id="next-exam-title">Next GCSE Exam: Loading...</div>
-<div id="next-exam-countdown"></div>
+<header>
+    <h1>GCSE Exam Countdown</h1>
+</header>
 
-<div class="filter-buttons">
-    <button class="filter-btn active" id="show-all">📄 All Exams</button>
-    <button class="filter-btn" id="show-fav">⭐ Favourites</button>
+<section id="nextExam">
+    <h2>Next GCSE Exam</h2>
+    <div id="nextExamContent">Loading…</div>
+</section>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="Search exams...">
 </div>
 
-<div id="exam-list"></div>
+<div class="filter-buttons">
+    <button id="filterAll" class="active-filter">All Exams</button>
+    <button id="filterFav" class="inactive-filter">⭐ Favourites Only</button>
+</div>
+
+<section id="examList"></section>
 
 <script>
-// ✅ Full exam list
-let exams = [
-    { name: "3D-Design 11D", date: "2026-04-21T09:00:00"},
-    { name: "3D-Design 11E", date: "2026-04-30T09:00:00"},
-    { name: "3D-Design 11H", date: "2026-04-27T09:00:00"},
-    { name: "3D-Design 11G", date: "2026-04-30T09:00:00"},
-    { name: "Photography 11C", date: "2026-04-22T09:00:00"},
-    { name: "Photography 11F", date: "2026-04-29T09:00:00"},
-    { name: "Art 11B", date: "2026-04-23T09:00:00"},
-    { name: "Art 11A", date: "2026-04-28T09:00:00"},
-    { name: "Sport Studies", date: "2026-05-08T09:00:00" },
-    { name: "Drama", date: "2026-05-08T13:00:00" },
-    { name: "Enterprise", date: "2026-05-06T09:00:00" },
-    { name: "Business Studies Paper 1", date: "2026-05-11T13:00:00" },
-    { name: "RE Paper 1", date: "2026-05-12T09:00:00" },
-    { name: "Biology Paper 1", date: "2026-05-12T13:00:00" },
-    { name: "Computer Science Paper 1", date: "2026-05-13T13:00:00" },
-    { name: "Geography Paper 1", date: "2026-05-13T09:00:00" },
-    { name: "Maths Paper 1", date: "2026-05-14T09:00:00" },
-    { name: "History Paper 1", date: "2026-05-15T09:00:00" },
-    { name: "Chemistry Paper 1", date: "2026-05-18T09:00:00" },
-    { name: "Computer Science Paper 2", date: "2026-05-19T13:00:00" },
-    { name: "French Listening/Reading", date: "2026-05-20T09:00:00" },
-    { name: "RE Paper 2", date: "2026-05-20T13:00:00" },
-    { name: "English Language Paper 1", date: "2026-05-21T09:00:00" },
-    { name: "Business Studies Paper 2", date: "2026-05-21T13:00:00" },
-    { name: "Physics Paper 1", date: "2026-06-02T09:00:00" },
-    { name: "Maths Paper 2", date: "2026-06-03T09:00:00" },
-    { name: "Geography Paper 2", date: "2026-06-03T13:00:00" },
-    { name: "English Language Paper 2", date: "2026-06-05T09:00:00" },
-    { name: "Biology Paper 2", date: "2026-06-08T09:00:00" },
-    { name: "Creative I-Media", date: "2026-06-08T13:00:00" },
-    { name: "History Paper 2", date: "2026-06-04T09:00:00" },
-    { name: "History Paper 3", date: "2026-06-09T13:00:00" },
-    { name: "Spanish Listening/Reading", date: "2026-06-09T09:00:00" },
-    { name: "Maths Paper 3", date: "2026-06-10T09:00:00" },
-    { name: "Geography Paper 3", date: "2026-06-11T09:00:00" },
-    { name: "Food & Nutrition", date: "2026-06-11T13:00:00" },
-    { name: "Physics Paper 2", date: "2026-06-15T09:00:00" },
-    { name: "Spanish Writing", date: "2026-06-16T09:00:00" },
-    { name: "Chemistry Paper 2", date: "2026-06-12T09:00:00" },
-    { name: "MFL additional languages @ Canterbury Academy", date: "2026-05-12T09:00:00" }
+/* --------------------------
+   EXAM DATA (EDIT THIS PART)
+--------------------------- */
+const examData = [
+    { name: "Mathematics Paper 1", date: "2026-05-10T09:00:00" },
+    { name: "English Literature", date: "2026-05-12T13:30:00" },
+    { name: "Biology Paper 1", date: "2026-05-03T09:00:00" },
+    { name: "Chemistry Paper 1", date: "2026-05-05T09:00:00" }
 ];
 
-// ✅ Prepare exam objects
-exams = exams.map(e => ({ ...e, date: new Date(e.date)}))
-             .sort((a,b) => a.date - b.date);
+/* --------------------------
+   GLOBALS
+--------------------------- */
+let favourites = JSON.parse(localStorage.getItem("favourites")) || [];
+let showFavouritesOnly = false;
+let searchQuery = "";
 
-// ✅ Load favourites
-let favourites = JSON.parse(localStorage.getItem("favouriteExams") || "[]");
-
-// ✅ Save favourites
-function saveFavs() {
-    localStorage.setItem("favouriteExams", JSON.stringify(favourites));
+/* --------------------------
+   HELPER FUNCTIONS
+--------------------------- */
+function isStarted(examDate) {
+    const now = Date.now();
+    const start = new Date(examDate).getTime();
+    return now >= start && now < start + 3600000;
 }
 
-function pad(n) { return String(n).padStart(2, "0"); }
+function isFinished(examDate) {
+    const now = Date.now();
+    const end = new Date(examDate).getTime() + 3600000;
+    return now >= end;
+}
 
-// ✅ Filter toggle
-let showFavOnly = false;
-document.getElementById("show-all").onclick = () => {
-    showFavOnly = false;
-    document.getElementById("show-all").classList.add("active");
-    document.getElementById("show-fav").classList.remove("active");
-    renderExams();
-};
-document.getElementById("show-fav").onclick = () => {
-    showFavOnly = true;
-    document.getElementById("show-fav").classList.add("active");
-    document.getElementById("show-all").classList.remove("active");
-    renderExams();
-};
+function getTimeRemaining(examDate) {
+    const now = Date.now();
+    const start = new Date(examDate).getTime();
+    let diff = start - now;
+    if (diff < 0) diff = 0;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return { h, m, s, total: diff };
+}
 
-// ✅ Render cards
-function renderExams() {
-    const examList = document.getElementById("exam-list");
-    examList.innerHTML = "";
+function formatCountdown(examDate) {
+    if (isFinished(examDate)) return "Finished ✅";
+    if (isStarted(examDate)) return "Started";
 
-    exams.forEach((exam, i) => {
-        if (showFavOnly && !favourites.includes(exam.name)) return;
+    const t = getTimeRemaining(examDate);
+    return `${t.h}h ${t.m}m ${t.s}s`;
+}
 
-        const card = document.createElement("div");
-        card.className = "exam-card";
+function urgencyClass(examDate) {
+    if (isFinished(examDate)) return "finished";
+    if (isStarted(examDate)) return "orange";
 
-        const isFav = favourites.includes(exam.name);
-        const starClass = isFav ? "star faved" : "star";
+    const t = getTimeRemaining(examDate).total;
+    if (t < 600000) return "red";      // < 10 minutes
+    if (t < 3600000) return "orange";  // < 1 hour
+    if (t < 86400000) return "yellow"; // < 24 hours
+    return "";
+}
 
-        card.innerHTML = `
-            <div class="${starClass}" data-name="${exam.name}">★</div>
-            <div class="exam-name">${exam.name}</div>
-            <div class="exam-date">${exam.date.toLocaleString()}</div>
+function sortExams(data) {
+    return data.slice().sort((a, b) => {
+        const Astart = isStarted(a.date);
+        const Bstart = isStarted(b.date);
+        const Afinish = isFinished(a.date);
+        const Bfinish = isFinished(b.date);
 
-            <div class="countdown-row" id="cd-${i}">
-                <div class="time-box"><span id="d-${i}">--</span><div class="label">Days</div></div>
-                <div class="time-box"><span id="h-${i}">--</span><div class="label">Hours</div></div>
-                <div class="time-box"><span id="m-${i}">--</span><div class="label">Mins</div></div>
-                <div class="time-box"><span id="s-${i}">--</span><div class="label">Secs</div></div>
-            </div>
-        `;
-        examList.appendChild(card);
-    });
+        if (!Astart && !Afinish && !Bstart && !Bfinish)
+            return new Date(a.date) - new Date(b.date);
 
-    // ✅ Star: add/remove favourite
-    document.querySelectorAll(".star").forEach(star => {
-        star.onclick = () => {
-            const name = star.dataset.name;
-            if (favourites.includes(name)) {
-                favourites = favourites.filter(f => f !== name);
-            } else {
-                favourites.push(name);
-            }
-            saveFavs();
-            renderExams();
-        };
+        if (Astart && !Bstart) return -1;
+        if (Bstart && !Astart) return 1;
+
+        if (Afinish && !Bfinish) return 1;
+        if (Bfinish && !Afinish) return -1;
+
+        return 0;
     });
 }
 
-// ✅ Update countdowns + next exam
-function updateTimers() {
-    const now = new Date();
+/* --------------------------
+   RENDER FUNCTIONS
+--------------------------- */
+function renderNextExam(sorted) {
+    const upcoming = sorted.filter(e => !isFinished(e.date));
+    const container = document.getElementById("nextExamContent");
 
-    // ✅ Find next upcoming exam
-    let nextExam = exams.find(e => e.date > now);
-    if (!nextExam) {
-        document.getElementById("next-exam-title").innerText = "All exams completed!";
-        document.getElementById("next-exam-countdown").innerText = "";
-    } else {
-        const diff = nextExam.date - now;
-        const d = Math.floor(diff / (1000*60*60*24));
-        const h = Math.floor((diff / (1000*60*60)) % 24);
-        const m = Math.floor((diff / (1000*60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
-
-        document.getElementById("next-exam-title").innerText =
-            `Next GCSE Exam: ${nextExam.name}`;
-        document.getElementById("next-exam-countdown").innerText =
-            `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+    if (upcoming.length === 0) {
+        container.textContent = "All exams completed!";
+        return;
     }
 
-    // ✅ Update every exam card
-    exams.forEach((exam, i) => {
-        const diff = exam.date - now;
+    const next = upcoming[0];
+    container.innerHTML = `
+        <strong>${next.name}</strong><br>
+        <span>${formatCountdown(next.date)}</span>
+    `;
+}
 
-        // ✅ If exam is now or past
-        if (diff <= 0) {
-            const sinceStart = now - exam.date;
+function renderExams() {
+    let filtered = examData;
 
-            if (sinceStart < 60 * 60 * 1000) {
-                document.getElementById(`cd-${i}`).innerHTML =
-                    "<div style='text-align:center; font-size:1.2rem; opacity:0.85;'>Started</div>";
-                return;
-            }
+    if (showFavouritesOnly) {
+        filtered = filtered.filter(e => favourites.includes(e.name));
+    }
 
-            document.getElementById(`cd-${i}`).innerHTML =
-                "<div style='text-align:center; font-size:1.2rem; color:#4caf50;'>Finished ✅</div>";
-            return;
-        }
+    if (searchQuery.trim() !== "") {
+        filtered = filtered.filter(e =>
+            e.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }
 
-        // ✅ Normal countdown
-        const d = Math.floor(diff / (1000*60*60*24));
-        const h = Math.floor((diff / (1000*60*60)) % 24);
-        const m = Math.floor((diff / (1000*60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
+    const sorted = sortExams(filtered);
+    renderNextExam(sortExams(examData));
 
-        if (document.getElementById(`d-${i}`)) {
-            document.getElementById(`d-${i}`).innerText = pad(d);
-            document.getElementById(`h-${i}`).innerText = pad(h);
-            document.getElementById(`m-${i}`).innerText = pad(m);
-            document.getElementById(`s-${i}`).innerText = pad(s);
-        }
+    const list = document.getElementById("examList");
+    list.innerHTML = "";
+
+    sorted.forEach(exam => {
+        const card = document.createElement("div");
+        card.className = `exam-card ${urgencyClass(exam.date)}`;
+
+        card.innerHTML = `
+            <div>
+                <strong>${exam.name}</strong><br>
+                <span>${formatCountdown(exam.date)}</span>
+            </div>
+
+            <div class="fav" data-name="${exam.name}">
+                ${favourites.includes(exam.name) ? "⭐" : "☆"}
+            </div>
+        `;
+
+        list.appendChild(card);
+    });
+
+    document.querySelectorAll(".fav").forEach(star => {
+        star.onclick = () => toggleFavourite(star.dataset.name);
     });
 }
 
+/* --------------------------
+   FAVOURITES
+--------------------------- */
+function toggleFavourite(name) {
+    if (favourites.includes(name)) {
+        favourites = favourites.filter(x => x !== name);
+    } else {
+        favourites.push(name);
+    }
+    localStorage.setItem("favourites", JSON.stringify(favourites));
+    renderExams();
+}
+
+/* --------------------------
+   EVENTS & INTERVAL
+--------------------------- */
+document.getElementById("filterAll").onclick = () => {
+    showFavouritesOnly = false;
+    document.getElementById("filterAll").className = "active-filter";
+    document.getElementById("filterFav").className = "inactive-filter";
+    renderExams();
+};
+
+document.getElementById("filterFav").onclick = () => {
+    showFavouritesOnly = true;
+    document.getElementById("filterFav").className = "active-filter";
+    document.getElementById("filterAll").className = "inactive-filter";
+    renderExams();
+};
+
+document.getElementById("searchBar").oninput = e => {
+    searchQuery = e.target.value;
+    renderExams();
+};
+
+/* Live updating every second */
+setInterval(renderExams, 1000);
+
+/* Initial load */
 renderExams();
-updateTimers();
-setInterval(updateTimers, 1000);
 </script>
 
 </body>
