@@ -180,6 +180,7 @@ let exams = [
     { name: "Physics Paper 2", date: "2026-06-15T09:00:00" },
     { name: "Spanish Writing", date: "2026-06-16T09:00:00" },
     { name: "Chemistry Paper 2", date: "2026-06-12T09:00:00" },
+    { name: "Test Paper 1", date: "2026-03-30T09:53:00" },
     { name: "MFL additional languages @ Canterbury Academy", date: "2026-05-12T09:00:00" }
 ];
 
@@ -264,46 +265,43 @@ function renderExams() {
 // ✅ Update countdowns + next exam
 function updateTimers() {
     const now = new Date();
+// ✅ Update all exam cards
+exams.forEach((exam, i) => {
+    const diff = exam.date - now;
 
-    // ✅ NEXT EXAM
-    let nextExam = exams.find(e => e.date > now);
+    // ✅ If exam time has passed
+    if (diff <= 0) {
 
-    if (!nextExam) {
-        document.getElementById("next-exam-title").innerText = "All exams completed!";
-        document.getElementById("next-exam-countdown").innerText = "";
-    } else {
-        const diff = nextExam.date - now;
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diff / (1000 * 60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
+        // ✅ How long since it started
+        const sinceStart = now - exam.date;
 
-        document.getElementById("next-exam-title").innerText =
-            `Next GCSE Exam: ${nextExam.name}`;
+        // ✅ During first 1 hour: show "Started"
+        if (sinceStart < 60 * 60 * 1000) {
+            document.getElementById(`cd-${i}`).innerHTML =
+                "<div style='text-align:center; font-size:1.2rem; opacity:0.85;'>Started</div>";
+            return;
+        }
 
-        document.getElementById("next-exam-countdown").innerText =
-            `${pad(d)}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+        // ✅ After 1 hour: show "Finished"
+        document.getElementById(`cd-${i}`).innerHTML =
+            "<div style='text-align:center; font-size:1.2rem; color:#4caf50;'>Finished ✅</div>";
+        return;
     }
 
-    // ✅ Update all exam cards
-    exams.forEach((exam, i) => {
-        const diff = exam.date - now;
-        if (diff <= 0) return;
+    // ✅ Normal countdown
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
 
-        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const m = Math.floor((diff / (1000 * 60)) % 60);
-        const s = Math.floor((diff / 1000) % 60);
-
-        if (document.getElementById(`d-${i}`)) {
-            document.getElementById(`d-${i}`).innerText = pad(d);
-            document.getElementById(`h-${i}`).innerText = pad(h);
-            document.getElementById(`m-${i}`).innerText = pad(m);
-            document.getElementById(`s-${i}`).innerText = pad(s);
-        }
-    });
-}
-
+    if (document.getElementById(`d-${i}`)) {
+        document.getElementById(`d-${i}`).innerText = pad(d);
+        document.getElementById(`h-${i}`).innerText = pad(h);
+        document.getElementById(`m-${i}`).innerText = pad(m);
+        document.getElementById(`s-${i}`).innerText = pad(s);
+    }
+});
+    
 renderExams();
 updateTimers();
 setInterval(updateTimers, 1000);
